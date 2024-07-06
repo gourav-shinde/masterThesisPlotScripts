@@ -11,7 +11,7 @@ plot_configs = [
         "groupby": "branch",
         "x": "Worker_Thread_Count",
         "y": "Simulation_Runtime_(secs.)",
-        "title": "Thread count branch vs Simulation time",
+        "title": "Simulation time for branchs",
         "type": "bar",
         "agg": "mean"
     },
@@ -26,8 +26,8 @@ plot_configs = [
     {
         "groupby": "branch",
         "x": "Model",
-        "y": "Average_Memory_Usage_(MB)",
-        "title": "Average Memory Usage by Model and Queue Type",
+        "y": ["Primary_Rollbacks", "Secondary_Rollbacks"],
+        "title": "Rollbacks by branch",
         "type": "bar",
         "agg": "mean"
     },
