@@ -54,6 +54,9 @@ def create_unified_plot(dataframes, config, output_dir):
     plt.figure(figsize=(16, 10))
     ax = plt.gca()
 
+    all_handles = []
+    all_labels = []
+
     for i, (model, df) in enumerate(dataframes.items()):
         grouped_data = df.groupby([config['groupby'], config['x']])[config['y']].agg(config['agg']).reset_index()
         
@@ -61,14 +64,19 @@ def create_unified_plot(dataframes, config, output_dir):
             sns.barplot(x=config['x'], y=config['y'], hue=config['groupby'], data=grouped_data, 
                         palette=colors[i*2:(i+1)*2], alpha=0.7, ax=ax)
             handles, labels = ax.get_legend_handles_labels()
-            for handle in handles:
-                handle.set_label(f"{model} - {handle.get_label()}")
+            new_labels = [f"{model} - {label}" for label in labels]
+            all_handles.extend(handles)
+            all_labels.extend(new_labels)
+            ax.legend().remove()  # Remove the current legend to avoid duplicates
         
         elif config['type'] == 'line':
             sns.lineplot(x=config['x'], y=config['y'], hue=config['groupby'], data=grouped_data, 
                          marker='o', palette=colors[i*2:(i+1)*2], ax=ax)
-            for line in ax.lines[-len(grouped_data[config['groupby']].unique()):]:
-                line.set_label(f"{model} - {line.get_label()}")
+            handles, labels = ax.get_legend_handles_labels()
+            new_labels = [f"{model} - {label}" for label in labels]
+            all_handles.extend(handles[len(all_handles):])  # Add only new handles
+            all_labels.extend(new_labels[len(all_labels):])  # Add only new labels
+            ax.legend().remove()  # Remove the current legend to avoid duplicates
 
     plt.title(config['title'], fontsize=20, fontweight='bold', pad=20)
     plt.xlabel(config['x'], fontsize=14, labelpad=10)
@@ -76,13 +84,12 @@ def create_unified_plot(dataframes, config, output_dir):
     
     ax.yaxis.set_major_formatter(FuncFormatter(format_y_axis))
     
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles, labels, title='Model - ' + config['groupby'], 
-              title_fontsize='13', fontsize='11', bbox_to_anchor=(1.05, 1), loc='upper left')
-    
     if len(grouped_data[config['x']].unique()) > 10:
         plt.xticks(rotation=45, ha='right')
-    
+
+    ax.legend(all_handles, all_labels, title='Model - ' + config['groupby'], 
+              title_fontsize='13', fontsize='11', bbox_to_anchor=(1.05, 1), loc='upper left')
+
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.tight_layout()
     

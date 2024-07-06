@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 import argparse
+import glob
 
 # List of plot configurations
 plot_configs = [
@@ -57,27 +58,31 @@ def create_plot(df, config, output_dir):
     plt.close()
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Generate plots from CSV data")
-    parser.add_argument("input_file", help="Path to the input CSV file")
+    parser = argparse.ArgumentParser(description="Generate plots from CSV data in a folder")
+    parser.add_argument("input_folder", help="Path to the input folder containing CSV files")
     return parser.parse_args()
 
 def main():
     # Parse command-line arguments
     args = parse_arguments()
     
-    # Get the directory of the input CSV file
-    input_dir = os.path.dirname(os.path.abspath(args.input_file))
-    
-    # Create output directory as a subdirectory of the input directory
-    output_dir = os.path.join(input_dir, 'output_plots')
+    # Create output directory as a subdirectory of the input folder
+    output_dir = os.path.join(args.input_folder, 'output_plots')
     os.makedirs(output_dir, exist_ok=True)
     
-    # Read the CSV file
-    df = pd.read_csv(args.input_file)
+    # Look for all CSV files in the specified folder
+    csv_files = glob.glob(os.path.join(args.input_folder, '*.csv'))
     
-    # Create plots for each configuration
-    for config in plot_configs:
-        create_plot(df, config, output_dir)
+    if not csv_files:
+        print(f"No CSV files found in the directory '{args.input_folder}'")
+        return
+    
+    # Create plots for each CSV file found
+    for csv_file in csv_files:
+        df = pd.read_csv(csv_file)
+        print(f"Processing {csv_file}")
+        for config in plot_configs:
+            create_plot(df, config, output_dir)
     
     print(f"All plots have been generated and saved in the '{output_dir}' directory.")
 
